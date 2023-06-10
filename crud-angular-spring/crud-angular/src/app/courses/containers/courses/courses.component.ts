@@ -1,28 +1,21 @@
-import { ConfirmatiomDialogComponent } from './../../../shared/components/confirmatiom-dialog/confirmatiom-dialog.component';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { ErrorDialogComponent } from 'src/app/shared/components/error-dialog/error-dialog.component';
+import { catchError, Observable, of } from 'rxjs';
 
+import { ErrorDialogComponent } from '../../../shared/components/error-dialog/error-dialog.component';
+import { ConfirmationDialogComponent } from './../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { Course } from '../../model/course';
 import { CoursesService } from '../../services/courses.service';
-import { validateVerticalPosition } from '@angular/cdk/overlay';
 
 @Component({
   selector: 'app-courses',
   templateUrl: './courses.component.html',
   styleUrls: ['./courses.component.scss']
 })
-export class CoursesComponent implements OnInit {
-
+export class CoursesComponent{
   courses$: Observable<Course[]> | null = null;
-  //courses: Course[] = [];
-
-
-  //coursesService: CoursesService;
 
   constructor(
     private coursesService: CoursesService,
@@ -30,28 +23,25 @@ export class CoursesComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar
-    ) {
+  )
+  {
     this.refresh();
   }
 
   refresh() {
     this.courses$ = this.coursesService.list()
-    .pipe(
-      catchError(error => {
-        this.onError('Erro ao carregar cursos.');
-        return ([])
-      })
-    );
+      .pipe(
+        catchError(error => {
+          this.onError('Erro ao carregar cursos.');
+          return of([])
+        })
+      );
   }
 
-  onError(errorMsg : string) {
+  onError(errorMsg: string) {
     this.dialog.open(ErrorDialogComponent, {
       data: errorMsg
     });
-  }
-
-  ngOnInit(): void {
-
   }
 
   onAdd() {
@@ -63,23 +53,23 @@ export class CoursesComponent implements OnInit {
   }
 
   onRemove(course: Course) {
-    const dialogRef = this.dialog.open(ConfirmatiomDialogComponent, {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       data: 'Tem certeza que deseja remover esse curso?',
     });
 
     dialogRef.afterClosed().subscribe((result: boolean) => {
-      if (result) {
+      if(result){
         this.coursesService.remove(course._id).subscribe(
           () => {
             this.refresh();
-            this.snackBar.open('Curso removido com sucesso!', 'X', {
-              duration: 5000
+            this.snackBar.open('Curso deletado com sucesso', 'x', {
+              duration: 5000,
               verticalPosition: 'top',
               horizontalPosition: 'center'
             });
           },
-          () => this.onError('Erro ao tentar remover cursos.')
-          );
+          error => this.onError('Erro ao tentar remover curso')
+        );
       }
     });
   }

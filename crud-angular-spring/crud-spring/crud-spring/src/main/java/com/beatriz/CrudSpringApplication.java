@@ -6,6 +6,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 import com.beatriz.model.Course;
+import com.beatriz.model.Lesson;
+import com.repository.CourseRepository;
+
+import enums.Category;
 
 @SpringBootApplication
 public class CrudSpringApplication {
@@ -16,15 +20,26 @@ public class CrudSpringApplication {
 
 	@Bean
 	CommandLineRunner initDatabase(CourseRepository courseRepository) {
-		return args => {
+		return args -> {
 			courseRepository.deleteAll();
 
 			Course c = new Course();
 			c.setName("Angular com Spring");
-			c.setCategory("front-end");
+			c.setCategory(Category.BACK_END);
+
+			Lesson l = new Lesson();
+			l.setName("Introdução");
+			l.setYoutubeUrl("watch?v=1");
+			l.setCourse(c);
+			c.getLessons().add(l);
+
+			Lesson l1 = new Lesson();
+			l1.setName("Angular");
+			l1.setYoutubeUrl("watch?v=2");
+			l1.setCourse(c);
+			c.getLessons().add(l1);
 
 			courseRepository.save(c);
 		};
 	}
-
 }
